@@ -7,10 +7,10 @@ import os
 st.set_page_config(page_title="쇼츠 원고 추출기", page_icon="🎬")
 st.title("🎬 쇼츠 원고 추출기")
 
-# 2. 면책 조항 안내 (사용자 요청 반영)
-st.info("⚠️ **저작권 안내**: 다른 사람의 영상을 텍스트로 변환하여 서비스할 때는 개인적인 학습이나 분석 용도로 안내하는 면책 조항을 넣는 것이 좋습니다. 본 도구는 교육 및 연구 목적으로만 사용해 주세요.")
+# 2. 면책 조항 안내
+st.info("⚠️ **저작권 안내**: 본 도구는 개인적인 학습이나 분석 용도로만 사용해 주세요. 상업적 이용 시 저작권 문제가 발생할 수 있습니다.")
 
-st.write("커피 한 잔 후원해주세요🥹")
+st.write("커피 한 잔 후원해주세요😊")
 
 # 3. API 키 설정 (Streamlit Secrets 활용)
 try:
@@ -23,19 +23,22 @@ url = st.text_input("유튜브 쇼츠 링크를 입력하세요", placeholder="h
 
 if st.button("원고 추출 시작"):
     if url:
-        with st.spinner("OpenAI의 Whisper API를 연동하면, 아주 저렴한 비용으로 수백 명에게 안정적인 서비스를 제공할 수 있습니다. 현재 분석 중입니다..."):
+        with st.spinner("AI가 영상을 분석 중입니다..."):
             try:
-                # 음성 추출
+                # 403 Forbidden 에러 방지를 위한 설정 추가
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}],
                     'outtmpl': 'temp_audio',
-                    'quiet': True
+                    'quiet': True,
+                    # 유튜브 차단을 피하기 위해 실제 브라우저인 것처럼 속이는 정보 추가
+                    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
                 }
+                
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
 
-                # Whisper API 호출 (서버 부하 감소 및 속도 향상)
+                # Whisper API 호출
                 audio_file = open("temp_audio.mp3", "rb")
                 transcript = client.audio.transcriptions.create(
                     model="whisper-1", 
@@ -58,10 +61,7 @@ if st.button("원고 추출 시작"):
                 os.remove("temp_audio.mp3")
 
             except Exception as e:
+                # 상세 에러 메시지 출력
                 st.error(f"오류가 발생했습니다: {e}")
     else:
         st.warning("링크를 입력해 주세요.")
-
-# 하단 푸터 (브랜드 강조)
-st.markdown("---")
-st.caption("© youtube shorts scripts downloader")
