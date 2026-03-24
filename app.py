@@ -7,44 +7,42 @@ import os
 st.set_page_config(page_title="쇼츠 원고 추출기", page_icon="🎬")
 st.title("🎬 쇼츠 원고 추출기")
 
-# 2. 저작권 안내 (면책 조항)
+# 2. 저작권 안내
 st.info("⚠️ **저작권 안내**: 본 도구는 개인적인 학습이나 분석 용도로만 사용해 주세요. 상업적 이용 시 저작권 문제가 발생할 수 있습니다.")
 
 st.write("커피 한 잔 후원해주세요😊")
 
-# 3. OpenAI API 키 설정
+# 3. API 키 설정
 try:
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except Exception:
-    st.error("API 키가 설정되지 않았습니다. Streamlit 설정에서 OPENAI_API_KEY를 확인하세요.")
+    st.error("API 키 설정 오류: Streamlit Secrets를 확인하세요.")
 
-# 4. URL 입력창
+# 4. URL 입력
 url = st.text_input("유튜브 쇼츠 링크를 입력하세요", placeholder="https://youtube.com/shorts/...")
 
 if st.button("원고 추출 시작"):
     if url:
-        with st.spinner("AI가 영상을 분석 중입니다..."):
+        with st.spinner("유튜브 차단을 우회하여 분석 중입니다... 잠시만 기다려주세요."):
             try:
-                # [핵심] 유튜브 차단을 피하기 위한 고급 설정 추가
+                # [필살기] 유튜브 차단을 피하기 위한 최신 설정
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}],
                     'outtmpl': 'temp_audio',
                     'quiet': True,
-                    'no_check_certificate': True,
+                    # 안드로이드 기기인 것처럼 속여 차단을 피함
+                    'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
                     'nocheckcertificate': True,
                     'headers': {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language': 'en-us,en;q=0.5',
-                        'Sec-Fetch-Mode': 'navigate',
+                        'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
                     }
                 }
                 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
 
-                # Whisper API로 받아쓰기 수행
+                # Whisper API 호출
                 audio_file = open("temp_audio.mp3", "rb")
                 transcript = client.audio.transcriptions.create(
                     model="whisper-1", 
@@ -66,12 +64,9 @@ if st.button("원고 추출 시작"):
                 os.remove("temp_audio.mp3")
 
             except Exception as e:
-                # 403 에러가 계속될 경우 안내 메시지 출력
                 if "403" in str(e):
-                    st.error("유튜브 서버에서 일시적으로 접속을 차단했습니다. 잠시 후 다시 시도하거나 다른 영상을 입력해 주세요.")
+                    st.error("유튜브가 현재 서버의 접속을 강력하게 차단 중입니다. 5~10분 후 다시 시도하거나, 다른 영상 링크를 넣어보세요.")
                 else:
-                    st.error(f"오류가 발생했습니다: {e}")
+                    st.error(f"오류 발생: {e}")
     else:
         st.warning("링크를 입력해 주세요.")
-
-# 요청하신 대로 하단 '내일을 바꾸는 한스푼' 문구는 삭제되었습니다.
