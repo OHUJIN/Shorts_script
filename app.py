@@ -64,4 +64,4 @@ if st.button("원고 추출 시작"):
 
 # 하단 푸터 (브랜드 강조)
 st.markdown("---")
-st.caption("© 2026 내일을 바꾸는 한스푼 - 사주 및 건강 정보 콘텐츠 제작 지원 도구")
+st.caption("© youtube shorts scripts downloader")
