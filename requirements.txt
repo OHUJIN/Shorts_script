@@ -1,5 +1,4 @@
 streamlit
+playwright
 yt-dlp
 openai
-setuptools
-youtube-transcript-api
