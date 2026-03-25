@@ -1,4 +1,4 @@
 streamlit
 playwright
-yt-dlp
+yt-dlp>=2025.3.17
 openai
